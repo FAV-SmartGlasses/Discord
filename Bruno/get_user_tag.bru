@@ -1,0 +1,17 @@
+meta {
+  name: get_user_tag
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://127.0.0.1:8080/tag
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "Tomáš Krůta"
+  }
+}

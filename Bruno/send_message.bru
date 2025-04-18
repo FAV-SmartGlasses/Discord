@@ -1,0 +1,20 @@
+meta {
+  name: send_message
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://127.0.0.1:8080/messages/send
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "message": "Hello from bot controlled webhook",
+    "name": "Giga chad",
+    "pfp": "",
+    "webhook": ""
+  }
+}

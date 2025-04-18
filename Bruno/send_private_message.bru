@@ -1,0 +1,19 @@
+meta {
+  name: send_private_message
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://127.0.0.1:8080/messages/send_private
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "message": "Hello, from DMs",
+    "name": "Some usr",
+    "tag": "tomaskruta"
+  }
+}
