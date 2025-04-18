@@ -42,7 +42,7 @@ def send_webhook():
     webhook_url = data.get('server')
     auth = request.args.get("auth")
 
-    if auth != os.getenv("AUTH"):
+    if auth != os.getenv("AUTH_KEY"):
         return "Invalid auth key", 401
 
     if not all([message, username, webhook_url]):
@@ -65,7 +65,7 @@ def send_webhook():
 def get_messages():
     auth = request.args.get("auth")
 
-    if auth != os.getenv("AUTH"):
+    if auth != os.getenv("AUTH_KEY"):
         return "Invalid auth key", 401
     return jsonify(message_log)
 
@@ -78,7 +78,7 @@ def send_private():
     tag = data.get('tag')
     auth = request.args.get("auth")
 
-    if auth != os.getenv("AUTH"):
+    if auth != os.getenv("AUTH_KEY"):
         return "Invalid auth key", 401
 
     if not all([message, username, tag]):
@@ -102,7 +102,7 @@ def send_private():
 def get_webhooks():
     auth = request.args.get("auth")
 
-    if auth != os.getenv("AUTH"):
+    if auth != os.getenv("AUTH_KEY"):
         return "Invalid auth key", 401
 
     if os.path.exists('webhooks.json'):
@@ -115,7 +115,7 @@ def get_webhooks():
 def get_user_tags():
     auth = request.args.get("auth")
 
-    if auth != os.getenv("AUTH"):
+    if auth != os.getenv("AUTH_KEY"):
         return "Invalid auth key", 401
 
     data = request.json
@@ -188,5 +188,10 @@ def run_flask():
 
 # Start everything
 if __name__ == '__main__':
-    threading.Thread(target=run_flask).start()
-    bot.run(os.getenv("BOT_TOKEN"))
+    flask_thread = threading.Thread(target=run_flask)
+    try:
+        flask_thread.start()
+        bot.run(os.getenv("BOT_TOKEN"))
+    except KeyboardInterrupt:
+        print("Exiting...")
+        flask_thread.join()
