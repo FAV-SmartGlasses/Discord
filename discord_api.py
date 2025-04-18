@@ -40,6 +40,10 @@ def send_webhook():
     username = data.get('name')
     avatar_url = data.get('pfp')
     webhook_url = data.get('server')
+    auth = request.args.get("auth")
+
+    if auth != os.getenv("AUTH"):
+        return "Invalid auth key", 401
 
     if not all([message, username, webhook_url]):
         return 'Missing fields', 400
@@ -59,6 +63,10 @@ def send_webhook():
 # Endpoint to get all collected messages
 @app.route('/messages/get', methods=['GET'])
 def get_messages():
+    auth = request.args.get("auth")
+
+    if auth != os.getenv("AUTH"):
+        return "Invalid auth key", 401
     return jsonify(message_log)
 
 # Endpoint to send private DM
@@ -68,6 +76,10 @@ def send_private():
     message = data.get('message')
     username = data.get('name')
     tag = data.get('tag')
+    auth = request.args.get("auth")
+
+    if auth != os.getenv("AUTH"):
+        return "Invalid auth key", 401
 
     if not all([message, username, tag]):
         return 'Missing fields', 400
@@ -88,6 +100,11 @@ def send_private():
 
 @app.route('/webhooks', methods=['GET'])
 def get_webhooks():
+    auth = request.args.get("auth")
+
+    if auth != os.getenv("AUTH"):
+        return "Invalid auth key", 401
+
     if os.path.exists('webhooks.json'):
         with open('webhooks.json', 'r') as f:
             return jsonify(json.load(f))
@@ -96,6 +113,11 @@ def get_webhooks():
 
 @app.route('/tag', methods=['POST'])
 def get_user_tags():
+    auth = request.args.get("auth")
+
+    if auth != os.getenv("AUTH"):
+        return "Invalid auth key", 401
+
     data = request.json
     username = data.get('username')
     if not username:
