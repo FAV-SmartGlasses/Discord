@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 
 webhooks.json
+messages.json
 
 # C extensions
 *.so

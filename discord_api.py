@@ -11,13 +11,15 @@ import dotenv
 dotenv.load_dotenv(os.path.abspath(".env"))
 
 # Initialize message store
-message_log = []
+message_log : dict[str, dict[str, list]] = {}
+if os.path.exists(os.path.abspath("messages.json")):
+    with open("messages.json") as f:
+        message_log = json.load(f)
+
 webhook_store = {}
 if os.path.exists(os.path.abspath("webhooks.json")):
     with open("webhooks.json") as f:
         webhook_store = json.load(f)
-        print(webhook_store)
-
 # Flask setup
 app = Flask(__name__)
 
@@ -37,7 +39,7 @@ def send_webhook():
     message = data.get('message')
     username = data.get('name')
     avatar_url = data.get('pfp')
-    webhook_url = data.get('webhook')
+    webhook_url = data.get('server')
 
     if not all([message, username, webhook_url]):
         return 'Missing fields', 400
@@ -112,27 +114,48 @@ def get_user_tags():
 
 # Capture messages from all servers the bot is in
 @bot.event
-async def on_message(message):
+async def on_message(message : discord.Message):
+    global message_log
+
     if message.author == bot.user:
         return
 
-    message_log.append({
-        'author': f"{message.author.name}#{message.author.discriminator}",
+    guild = str(message.guild) if not str(message.guild) == "None" else "DMs"
+
+    channel = str(message.author.name) if "Direct Message" in str(message.channel) else str(message.channel)
+
+    if message_log.get(guild) is None:
+        message_log[guild] = {}
+
+    if message_log.get(guild).get(channel) is None:
+        message_log[guild][channel] = []
+
+    message_log[guild][channel].append({
+        'author': f"{message.author.name}",
         'content': message.content,
-        'channel': str(message.channel),
+        'channel': channel,
         'timestamp': str(message.created_at)
     })
 
+    if len(message_log.get(guild).get(channel)) > 100:
+        message_log[guild][channel] = message_log[guild][channel][1:]
+
+    await save_messages()
     await bot.process_commands(message)
 
+async def save_messages():
+    with open("messages.json", "w") as f:
+        json.dump(message_log, f)
+
 @bot.event
-async def on_guild_join(guild):
+async def on_guild_join(guild : discord.Guild):
     for channel in guild.text_channels:
         try:
             webhook = await channel.create_webhook(name='AutoWebhook')
-            webhook_store[channel.name] = webhook.url
+            webhook_store[guild.name][channel.name] = webhook.url
         except Exception as e:
             print(f"Failed to create webhook in {channel.name}: {e}")
+
     # Save to JSON file
     with open('webhooks.json', 'w') as f:
         json.dump(webhook_store, f)
