@@ -39,13 +39,14 @@ def send_webhook():
     message = data.get('message')
     username = data.get('name')
     avatar_url = data.get('pfp')
-    webhook_url = data.get('server')
+    webhook_url = data.get('webhook')
     auth = request.args.get("auth")
 
     if auth != os.getenv("AUTH_KEY"):
         return "Invalid auth key", 401
 
     if not all([message, username, webhook_url]):
+        print(message, username, webhook_url)
         return 'Missing fields', 400
 
     payload = {
