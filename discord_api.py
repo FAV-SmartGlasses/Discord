@@ -10,6 +10,13 @@ import dotenv
 
 dotenv.load_dotenv(os.path.abspath(".env"))
 
+LLM_URL = os.getenv("LLM_SERVER")
+
+ai_messages : dict[str, list[dict[str, str]]] = {}
+if os.path.exists(os.path.abspath("ai_messages.json")):
+    with open("ai_messages.json") as f:
+        ai_messages = json.load(f)
+
 # Initialize message store
 message_log : dict[str, dict[str, list]] = {}
 if os.path.exists(os.path.abspath("messages.json")):
@@ -68,7 +75,7 @@ def get_messages():
 
     if auth != os.getenv("AUTH_KEY"):
         return "Invalid auth key", 401
-    return jsonify(message_log)
+    return jsonify([message_log, ai_messages]), 200
 
 # Endpoint to send private DM
 @app.route('/messages/send_private', methods=['POST'])
@@ -135,6 +142,59 @@ def get_user_tags():
                 })
     return jsonify(matches)
 
+@app.route('/llm', methods=['POST'])
+def send_to_llm():
+    global ai_messages
+    auth = request.args.get("auth")
+
+    if auth != os.getenv("AUTH_KEY"):
+        return "Invalid auth key", 401
+
+    data = request.json
+    model = data.get("model")
+    messages = data.get("messages")
+    temperature = data.get("temperature")
+
+    if not all([model, messages, temperature]):
+        return "Missing fields", 400
+
+    ai_messages = messages
+
+    print(f"received {ai_messages}")
+
+    payload = {
+        "model": model,
+        "messages": ai_messages.get(model),
+        "temperature": temperature
+    }
+
+    response = requests.post(LLM_URL, json=payload)
+    if response.status_code == 200:
+        text = response.json().get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+
+        ai_messages.get(model).append({"role": "assistant", "content": text})
+
+        asyncio.run_coroutine_threadsafe(save_messages(), bot.loop)
+
+        return text, 200
+    else:
+        return f"Error: {response.status_code} - {response.text}", response.status_code
+
+@app.route("/models", methods = ["GET"])
+def get_models():
+    auth = request.args.get("auth")
+
+    if auth != os.getenv("AUTH_KEY"):
+        return "Invalid auth key", 401
+
+    url = os.getenv("MODELS")
+    response = requests.get(url)
+
+    if response.ok:
+        return response.json().get("data"), 200
+    else:
+        return f"Error: {response.status_code} - {response.text}", response.status_code
+
 # Capture messages from all servers the bot is in
 @bot.event
 async def on_message(message : discord.Message):
@@ -168,6 +228,9 @@ async def on_message(message : discord.Message):
 
 async def save_messages():
     with open("messages.json", "w") as f:
+        json.dump(message_log, f)
+
+    with open("ai_messages.json", "w") as f:
         json.dump(message_log, f)
 
 @bot.event
