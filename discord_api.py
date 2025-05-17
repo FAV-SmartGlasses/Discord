@@ -1,4 +1,6 @@
 import threading
+
+from discord import ThreadMember
 from flask import Flask, request, jsonify
 import discord
 from discord.ext import commands
@@ -27,6 +29,12 @@ webhook_store = {}
 if os.path.exists(os.path.abspath("webhooks.json")):
     with open("webhooks.json") as f:
         webhook_store = json.load(f)
+
+channels = {}
+if os.path.exists(os.path.abspath("channels.json")):
+    with open("channels.json") as f:
+        channels = json.load(f)
+
 # Flask setup
 app = Flask(__name__)
 
@@ -202,7 +210,18 @@ async def on_message(message : discord.Message):
 
     guild = str(message.guild) if not str(message.guild) == "None" else "DMs"
 
-    channel = str(message.author.name) if "Direct Message" in str(message.channel) else str(message.channel)
+    channel = None if "Direct Message" in str(message.channel) else str(message.channel)
+
+    if channel is None:
+        if not message.author.bot:
+            channels[message.channel.id] = str(message.author.name)
+            with open("channels.json", "w") as f:
+                json.dump(channels, f)
+
+        channel = channels.get(message.channel.id)
+
+    if channel is None:
+        return
 
     if message_log.get(guild) is None:
         message_log[guild] = {}

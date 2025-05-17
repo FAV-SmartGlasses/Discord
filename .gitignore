@@ -6,6 +6,7 @@ __pycache__/
 webhooks.json
 messages.json
 ai_messages.json
+channels.json
 
 # C extensions
 *.so
