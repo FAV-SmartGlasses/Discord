@@ -200,9 +200,6 @@ def get_models():
 async def on_message(message : discord.Message):
     global message_log
 
-    if message.author == bot.user:
-        return
-
     guild = str(message.guild) if not str(message.guild) == "None" else "DMs"
 
     channel = str(message.author.name) if "Direct Message" in str(message.channel) else str(message.channel)
@@ -235,9 +232,11 @@ async def save_messages():
 
 @bot.event
 async def on_guild_join(guild : discord.Guild):
+    webhook_store[guild.name] = {}
     for channel in guild.text_channels:
         try:
             webhook = await channel.create_webhook(name='AutoWebhook')
+            print(f"Created webhook: {webhook.url} in {channel.name}")
             webhook_store[guild.name][channel.name] = webhook.url
         except Exception as e:
             print(f"Failed to create webhook in {channel.name}: {e}")
