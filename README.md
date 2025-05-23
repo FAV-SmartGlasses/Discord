@@ -10,7 +10,7 @@ This has no functionality
 ### Discord
 With this can use Discord
 
-1. Create your Discord bot
+1. Create your [Discord bot](https://discord.com/developers/)
 2. Create a file called `.env` looking something like this:
 ```
 BOT_TOKEN = {Your bot token}
