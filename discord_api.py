@@ -1,14 +1,14 @@
-import threading
-
-from discord import ThreadMember
-from flask import Flask, request, jsonify
-import discord
-from discord.ext import commands
 import asyncio
-import requests
 import json
 import os
+import threading
+
+import discord
 import dotenv
+import requests
+from discord import ThreadMember
+from discord.ext import commands
+from flask import Flask, request, jsonify
 
 dotenv.load_dotenv(os.path.abspath(".env"))
 
