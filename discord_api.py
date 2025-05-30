@@ -6,7 +6,6 @@ import threading
 import discord
 import dotenv
 import requests
-from discord import ThreadMember
 from discord.ext import commands
 from flask import Flask, request, jsonify
 
