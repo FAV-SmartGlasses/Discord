@@ -246,7 +246,7 @@ async def save_messages():
         json.dump(message_log, f)
 
     with open("ai_messages.json", "w") as f:
-        json.dump(message_log, f)
+        json.dump(ai_messages, f)
 
 @bot.event
 async def on_guild_join(guild : discord.Guild):
